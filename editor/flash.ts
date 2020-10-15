@@ -125,7 +125,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
     private stopSerialAsync() {
         log(`stopping serial reader`)
         this.readSerialId++;
-        return Promise.delay(200);
+        return pxt.Util.delay(200);
     }
 
     onSerial: (buf: Uint8Array, isStderr: boolean) => void;
@@ -197,7 +197,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
                 return this.quickHidFlashAsync(resp);
             })
             .finally(() => { this.flashing = false })
-            .then(() => Promise.delay(100))
+            .then(() => pxt.Util.delay(100))
             .then(() => this.disconnectAsync())
     }
 
@@ -206,7 +206,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
 
         const chunkSize = 62;
         let aborted = false;
-        return Promise.resolve()
+        return pxt.Util.promiseTimeout(FULL_FLASH_TIMEOUT, Promise.resolve()
             .then(() => {
                 return this.cmsisdap.cmdNums(0x8A /* DAPLinkFlash.OPEN */, [1]);
             })
@@ -233,8 +233,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
             .then((res) => {
                 log(`close`)
                 return this.cmsisdap.cmdNums(0x8B /* DAPLinkFlash.CLOSE */, []);
-            })
-            .timeout(FULL_FLASH_TIMEOUT, timeoutMessage)
+            }), timeoutMessage)
             .catch((e) => {
                 log(`error: abort`)
                 aborted = true;
@@ -286,7 +285,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
         }
 
         let checksums: Uint8Array
-        return this.getFlashChecksumsAsync()
+        return pxt.Util.promiseTimeout(PARTIAL_FLASH_TIMEOUT, this.getFlashChecksumsAsync()
             .then(buf => {
                 checksums = buf;
                 log("write code");
@@ -308,7 +307,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
                 aligned = DAPWrapper.onlyChanged(aligned, checksums, this.pageSize);
                 log(`incremental: ${aligned.length} pages`);
 
-                return Promise.mapSeries(pxt.U.range(aligned.length),
+                return pxt.Util.promiseMapAllSeries(pxt.U.range(aligned.length),
                     i => {
                         if (aborted) return Promise.resolve();
                         let b = aligned[i];
@@ -352,8 +351,7 @@ class DAPWrapper implements pxt.packetio.PacketIOWrapper {
                         pxt.tickEvent("hid.flash.done");
                         return this.cortexM.reset(false);
                     });
-            })
-            .timeout(PARTIAL_FLASH_TIMEOUT, timeoutMessage)
+            }), timeoutMessage)
             .catch((e) => {
                 aborted = true;
                 return this.resetAndThrowAsync(e);
