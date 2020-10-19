@@ -958,7 +958,7 @@ path.sim-board {
                         break;
                 }
             }
-            let tiltDecayer = 0;
+            let tiltDecayer: any = 0;
             this.element.addEventListener(pointerEvents.move, (ev: MouseEvent) => {
                 const state = this.board;
                 if (!state.accelerometerState.accelerometer.isActive) return;

@@ -9,7 +9,6 @@
         "newLine": "LF",
         "sourceMap": false,
         "lib": ["dom", "dom.iterable", "scripthost", "es6"],
-        "types": ["bluebird"],
         "typeRoots": ["../node_modules/@types"]
     },
     "include": [
