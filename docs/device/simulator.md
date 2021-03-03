@@ -5,7 +5,7 @@ It allows you to emulate sensor data or user interactions.
 
 ```sim
 input.onButtonPressed(Button.A, () => {
-   basic.showString("A");
+   basic.showString("C");
 });
 input.onButtonPressed(Button.B, () => {
    basic.showString("B");
